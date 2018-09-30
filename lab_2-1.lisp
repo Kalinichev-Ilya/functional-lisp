@@ -10,7 +10,7 @@
 (dotimes (i (ceiling (integer-length num) 8))
     (setf num
         (dpb
-            (change-byte (ldb (byte 8 (* i 8)) num))
+            (change-tetrad (ldb (byte 8 (* i 8)) num))
             (byte 8 (* i 8)) num)))
 (print num)
 
@@ -19,6 +19,6 @@
 ;; взял младшую, сдвинул влево 0011000
 ;; сложил через OR => 00111011
 
-(defun change-byte (b)
+(defun change-tetrad (b)
     (logior (ldb (byte 4 4) b)
         (ash (ldb (byte 4 0) b) 4)))
