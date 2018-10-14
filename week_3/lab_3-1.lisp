@@ -22,7 +22,6 @@
 (defparameter arr (read))
 (defvar dimensions (array-dimensions arr))
 
-
 (defvar x (car dimensions))
 (defvar y (car (cdr dimensions)))
 (defvar z (car (cdr (cdr dimensions))))
