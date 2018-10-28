@@ -27,16 +27,17 @@
     (defvar result-list nil)
     (defvar index 1)
     (dolist (i lst)
+        (format t "~C--" #\linefeed)
         (cond
             ( ;IF list than recursively call
-                (listp i) (sum-odds i)
+                (listp i) (setf (nth (- index 1) lst) (sum-odds i))
             )
             ( ;IF number is last and list of odd elements
                 (and (= index (list-length lst)) (= (count-of-odds lst) (list-length lst)))
                     (print i) ; не заходит :(
-                    (setf (nth (- index 1) lst) (apply '+ lst))
+                    (apply '+ lst)
             )
-            (t ;ELSE increment index
+            (t ;ELSE add in list
                 (push i result-list)
             )
         )
