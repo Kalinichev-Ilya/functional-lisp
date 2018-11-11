@@ -1,49 +1,18 @@
-; функции обработки Hash start----
-(defun set% (h key val &rest other-pairs)
-  (let ((pairs (append (list key val) other-pairs)) k v)
-      (hash-table-add-list h pairs)))
-
-; считает кол-во одинаковых элементов в hash
-(defun hash++ (h key &optional (n 1))
-    (let ((val (gethash key h)))
-        (cond
-            ((or (null val) (not (numberp val)))
-                (set% h key n))
-            (t (set% h key (+ val n))))
-        (gethash key h)))
-
-; добавляет в hash лист
-(defun hash-table-add-list (h lst &aux k v)
-    (loop
-        (if (null lst) (return))
-        (setf k (pop lst))
-        (if (null lst) (return))
-        (setf v (pop lst))
-        (setf (gethash k h) v))
-    h)
-
-; формирует hash
-(defun hash-table-key-value-pairs (h)
-    (let (pairs)
-        (maphash #'(lambda (k v)
-            (push (list k v) pairs)) h)
-        (nreverse pairs)))
-; ----end
-
 ;;;; Кто_звонил;Кому_звонили;Длительность остальные игнорировать
-;;;; Номер из 4х символов;
-;;;; Кому начинается на +49 и +39
+;;;; Кто начинается на +47 остальные игнорировать
+;;;; Отдать кол-во исходящих оператора
 
 (defparameter *vrps*
     '(
         "1101;+79119989911;122"
-        "+49231114563;1102;347"
-        "1101;+420023334521;134"
+        " +47231114563;1102;347"
+        "+47023334521;1101;134"
         "1102;+49023334521;811"
-        "1102;+49023334521;81"
+        "1102;1101;42"
         "ERR01:1234;;;0;0"
-        "1101;+390145211212;93"
-        "1101;+49023334521;756"
+        " +390145211212; 1102; 93"
+        "+47023414522;1102;753"
+        "1102;+79119989911;771"
     )
 )
 
@@ -64,29 +33,49 @@
         (digit-char-p (elt v 2))
         (digit-char-p (elt v 3))))
 
-; отдает Т для номеров начинающихся с +49 и +39
-(defun is-liquid-recipient (v)
-    (or
-        (equal (subseq (recipient-number v) 0 3) "+49")
-        (equal (subseq (recipient-number v) 0 3) "+39")))
-
-; достает номер оператора
-(defun operator-number (v)
+; отдает строку перед символом ";"
+(defun before-semicolon (v)
     (subseq v 0 (position #\; v)))
 
-; достает номер абонента
-(defun recipient-number (v)
-    (subseq v (1+ (position #\; v))))
+; отдает строку после символа ";"
+(defun after-semicolon (v)
+    (subseq v (1+ (position #\; v)) (length v)))
 
-; очищенный список
-; TODO вырезать номер абонента
+; достает номер звонящего
+(defun who-number (v)
+    (before-semicolon v))
+
+; достает перфикс номера звонящего
+(defun prefix (v)
+    (subseq (who-number (string-trim '(#\SPACE) v)) 0 3))
+
+; достает номер кому звонили
+(defun whom-number (v)
+    (before-semicolon (after-semicolon v)))
+
+; достает кол-во минут
+(defun minutes-count (v)
+    (after-semicolon (after-semicolon v)))
+
+; отдает Т для номеров начинающихся с +47
+(defun from-norway (v)
+    (cond
+        ( ;if contains ";" char
+            (numberp (search ";" v))
+                (cond
+                    (
+                        (equal (prefix v) "+47") t
+                    )
+                )
+        )
+    )
+)
+
+; возвращает hash (оператор . абонент) из отфильтрованного списка
 (defun filtered-calls-list (lst)
-    (remove-if
-        (complement #'is-operator-phone)
-            (remove-if
-                (complement #'is-liquid-recipient) lst)))
-
-; TODO сделать hash (номер оператора . кол-во минут)
-; TODO сложить кол-во минут по номеру оператора
-; TODO отсортировать по убыванию
-; TODO вернуть номер оператора из нулевой позиции
+    (let ((h (make-hash-table)))
+        (mapcan
+            #'(lambda (string)
+                (setf (gethash (whom-number string) h) (who-number string)))
+            (remove-if (complement #'from-norway) lst))
+    h))
