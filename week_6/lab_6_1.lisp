@@ -94,3 +94,8 @@
         hash)
     lst)
 )
+
+
+; сортировка hash по убыванию
+(defun sorted-assoc-lst (hash)
+    (sort (hash-to-asoc hash) #'> :key #'cdr)))
