@@ -99,3 +99,8 @@
 ; сортировка hash по убыванию
 (defun sorted-assoc-lst (hash)
     (sort (hash-to-asoc hash) #'> :key #'cdr)))
+
+; отдает номер оператора с большим кол-ом звонков
+(defun max-count-operator (hash)
+    (first
+        (first (sorted-assoc-lst hash))))
