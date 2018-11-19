@@ -84,3 +84,13 @@
         )
     )
 )
+
+
+; преобразует hash в assoc list для сортировок
+(defun hash-to-asoc (hash)
+    (let ((lst '()))
+        (maphash
+            #'(lambda (key value) (push (cons key value) lst))
+        hash)
+    lst)
+)
