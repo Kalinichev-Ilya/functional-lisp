@@ -1,6 +1,6 @@
 ;;;; Кто_звонил;Кому_звонили;Длительность остальные игнорировать
 ;;;; Кто начинается на +47 остальные игнорировать
-;;;; Отдать кол-во исходящих оператора
+;;;; Отдать кол-во исходящих минут звонившего оператора
 
 (defparameter *vrps*
     '(
@@ -71,11 +71,16 @@
     )
 )
 
-; возвращает hash (оператор . абонент) из отфильтрованного списка
-(defun filtered-calls-list (lst)
-    (let ((h (make-hash-table)))
-        (mapcan
-            #'(lambda (string)
-                (setf (gethash (whom-number string) h) (who-number string)))
-            (remove-if (complement #'from-norway) lst))
-    h))
+; возвращает hash -> (operator . count)
+(defun operators-count(lst &optional (n 1))
+    (let ((hs (make-hash-table :test 'equal)))
+        (cond
+            (;IF key exist than value+
+               (gethash (who-number str) hs) (setf (gethash (who-number str) hs) (1+ (gethash (who-number str) hs)))
+            )
+            (t ;ELSE value 1
+                (setf (gethash (who-number str) hs) n)
+            )
+        )
+    )
+)
