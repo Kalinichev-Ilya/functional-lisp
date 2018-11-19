@@ -85,7 +85,6 @@
     )
 )
 
-
 ; преобразует hash в assoc list для сортировок
 (defun hash-to-asoc (hash)
     (let ((lst '()))
@@ -95,7 +94,6 @@
     lst)
 )
 
-
 ; сортировка hash по убыванию
 (defun sorted-assoc-lst (hash)
     (sort (hash-to-asoc hash) #'> :key #'cdr)))
@@ -104,3 +102,16 @@
 (defun max-count-operator (hash)
     (first
         (first (sorted-assoc-lst hash))))
+
+; возвращает hash -> (оператор . абонент) из отфильтрованного списка
+(defun filtered-calls-list (lst)
+    (remove-if (complement #'from-norway) lst))
+
+; оператор которому звонили из Норвегии большее кол-во раз
+(max-count-operator
+    (filtered-calls-list *vrps*))
+
+; TODO сложить длительность его исходящих вызовов и вернуть
+;    создать list строк где звонил этот оператор
+;    сделать сертку по минутам
+;    вернуть результат
