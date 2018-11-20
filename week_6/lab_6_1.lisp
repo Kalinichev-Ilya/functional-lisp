@@ -16,23 +16,6 @@
     )
 )
 
-;;;; оставить в списке только записи где звонил внутренний номер
-;;;; - remove-if
-;;;; оставить в списке только запись где звонили в Германию и Испанию
-;;;; - remove-if
-;;;; подсчитать кол-во минут для каждого исходящего номера
-;;;; - reduce
-;;;; вывести внустренний номер сотрудник который звонил больше всего
-
-; маска на номер оператора
-(defun is-operator-phone (v)
-    (and (>= (length v) 4)
-        (char= #\; (elt v 4))
-        (digit-char-p (elt v 0))
-        (digit-char-p (elt v 1))
-        (digit-char-p (elt v 2))
-        (digit-char-p (elt v 3))))
-
 ; отдает строку перед символом ";"
 (defun before-semicolon (v)
     (subseq v 0 (position #\; v)))
@@ -71,6 +54,10 @@
     )
 )
 
+; возвращает список со входящими из Норвегии
+(defun filtered-calls-list (lst)
+    (remove-if (complement #'from-norway) lst))
+
 ; возвращает hash -> (operator . count)
 (defun operators-count(lst &optional (n 1))
     (let ((hs (make-hash-table :test 'equal)))
@@ -103,15 +90,29 @@
     (first
         (first (sorted-assoc-lst hash))))
 
-; возвращает hash -> (оператор . абонент) из отфильтрованного списка
-(defun filtered-calls-list (lst)
-    (remove-if (complement #'from-norway) lst))
-
 ; оператор которому звонили из Норвегии большее кол-во раз
 (max-count-operator
-    (filtered-calls-list *vrps*))
+    (operators-count (filtered-calls-list *vrps*)))
 
-; TODO сложить длительность его исходящих вызовов и вернуть
-;    создать list строк где звонил этот оператор
-;    сделать сертку по минутам
-;    вернуть результат
+; возвращает T есть звонил нужный оператор
+(defun operator-caller (v)
+    (cond
+        ( ;IF contains ";" char
+            (numberp (search ";" v))
+                (cond
+                    ( ;AND who called is operator
+                        (string= (who-number v)
+                            (max-count-operator
+                                (operators-count (filtered-calls-list *vrps*)))) t
+                    )
+                )
+        )
+    )
+)
+
+; фильтрует список, оставляет звонки нужного оператора
+(defun outgoing-call-lst (lst)
+    (remove-if (complement #'operator-caller) lst))
+
+; ответ
+(print (reduce (minutes-count (outgoing-call-lst *vrps*))))
